@@ -281,7 +281,7 @@ export class WslOrcadLivenessSupervisor {
         if (!this.deps.hasUserVisibleWork(entry.distro)) {
           // Relaunch without visible demand would defeat managed orcad idle exit.
           this.publish(entry, { state: 'idle', terminals: 'unverifiable' })
-          return
+          return this.deps.manager.retireListener(entry.distro)
         }
         return this.recover(entry, 'orcad-exited')
     }
@@ -297,6 +297,7 @@ export class WslOrcadLivenessSupervisor {
     if (recovering) {
       return this.recover(entry, 'distro-stopped')
     }
+    await this.deps.manager.retireListener(entry.distro)
     // Background recovery waits until another actor starts the distro.
     const generation = entry.generation
     this.deps.deferUntilRunning(entry.distro, `wsl-orcad-liveness:${entry.key}`, () => {
